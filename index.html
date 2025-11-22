@@ -3,709 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced 2D Elastic Collision Suite</title>
+    <title>Holographic Collision Engine</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --panel-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
-            --accent-primary: #38bdf8; /* Cyan */
-            --accent-secondary: #f472b6; /* Pink */
-            --accent-cm: #4ade80; /* Green */
-            --glow-strength: 10px;
+            --bg-deep: #f8fafc;
+            --bg-panel: #ffffff;
+            --text-main: #334155;
+            --text-dim: #64748b;
+            
+            /* Premium Soft Colors */
+            --neon-blue: #3b82f6; /* Soft Blue for M1 */
+            --neon-pink: #ec4899; /* Soft Pink for M2 */
+            --neon-green: #10b981; /* Soft Green for CM */
+            
+            --glass-border: 1px solid rgba(0, 0, 0, 0.08);
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-deep);
             color: var(--text-main);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.1) 0%, transparent 20%);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            margin: 0;
             padding: 20px;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        h1 {
-            font-weight: 300;
-            letter-spacing: 1px;
-            margin: 0;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 2.5rem;
-        }
-
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
-
-        /* Grid Layout */
-        .main-grid {
+        .main-layout {
+            max-width: 1400px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
+            grid-template-columns: 320px 1fr;
+            gap: 25px;
         }
 
-        @media (max-width: 900px) {
-            .main-grid { grid-template-columns: 1fr; }
+        /* Header */
+        header { 
+            grid-column: 1 / -1; 
+            margin-bottom: 10px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 0;
+        }
+        
+        h1 { 
+            margin: 0; 
+            font-weight: 400; 
+            letter-spacing: 1px; 
+            color: var(--text-main);
+            position: relative;
+        }
+        
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-pink));
+            border-radius: 2px;
         }
 
-        /* Panels */
-        .panel {
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        /* Sidebar Controls */
+        .control-panel {
+            background: var(--bg-panel);
+            border: var(--glass-border);
             border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            height: fit-content;
+            box-shadow: var(--shadow-soft);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .control-panel:hover {
+            box-shadow: var(--shadow-hover);
         }
 
-        /* Controls */
-        .control-group {
-            margin-bottom: 20px;
+        .input-group { 
+            margin-bottom: 20px; 
+            position: relative;
+        }
+        
+        .input-group::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+        }
+        
+        .group-title { 
+            font-size: 0.75rem; 
+            color: var(--text-dim); 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 10px; 
+            border-bottom: 1px solid rgba(0,0,0,0.05); 
+            padding-bottom: 5px; 
         }
 
-        label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-muted);
+        .row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+        }
+        
+        label { 
+            font-size: 0.9rem; 
+            font-weight: 500; 
         }
 
-        .value-badge {
-            background: rgba(255,255,255,0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
+        /* Styled Inputs */
+        input[type="number"] {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0,0,0,0.1);
             color: var(--text-main);
+            border-radius: 6px;
+            padding: 6px;
+            width: 70px;
+            text-align: center;
             font-family: monospace;
+            transition: all 0.2s;
+        }
+        
+        input[type="number"]:focus { 
+            border-color: var(--neon-blue); 
+            outline: none; 
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
 
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            outline: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: var(--accent-primary);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 var(--glow-strength) var(--accent-primary);
-            transition: transform 0.1s;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-
-        /* Buttons */
-        .btn-primary {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--accent-primary), #0ea5e9);
-            border: none;
+        /* Premium Button */
+        .btn-glow {
+            width: 100%; 
+            padding: 15px;
+            background: linear-gradient(90deg, var(--neon-blue), #8b5cf6);
+            color: #fff; 
+            border: none; 
             border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
+            font-weight: 600; 
+            text-transform: uppercase; 
             letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-
-        .btn-primary:hover {
+        
+        .btn-glow::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-glow:hover { 
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); 
             transform: translateY(-2px);
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+        }
+        
+        .btn-glow:hover::before {
+            left: 100%;
         }
 
         /* Canvas Area */
-        .canvas-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .viz-grid {
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
             gap: 20px;
         }
         
-        @media (max-width: 1100px) {
-            .canvas-container { grid-template-columns: 1fr; }
-        }
-
-        .canvas-wrapper {
+        .viz-card {
+            background: var(--bg-panel);
+            border: var(--glass-border);
+            border-radius: 16px;
             position: relative;
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: var(--shadow-soft);
+            transition: box-shadow 0.3s ease;
         }
-
-        .frame-label {
-            position: absolute;
-            top: 15px;
+        
+        .viz-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .card-label {
+            position: absolute; 
+            top: 15px; 
             left: 15px;
-            background: rgba(0,0,0,0.6);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: var(--accent-primary);
-            border-left: 3px solid var(--accent-primary);
+            font-size: 0.7rem; 
+            font-weight: bold; 
+            color: var(--neon-green);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 4px 10px; 
+            border-radius: 4px; 
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            z-index: 10;
         }
 
         canvas {
-            display: block;
-            width: 100%;
+            display: block; 
+            width: 100%; 
+            height: 400px;
+            background: radial-gradient(circle at center, #f1f5f9 0%, #e2e8f0 100%);
         }
 
-        /* Data Dashboard */
-        .dashboard {
+        /* Stats Bar */
+        .stats-bar {
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 15px; 
             margin-top: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
         }
-
-        .metric-card {
-            background: rgba(255,255,255,0.03);
-            padding: 10px;
-            border-radius: 8px;
+        
+        .stat-item {
+            background: rgba(255,255,255,0.7); 
+            padding: 15px; 
+            border-radius: 10px; 
             text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .stat-val { 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            font-family: monospace; 
+            color: var(--text-main); 
+        }
+        
+        .stat-label { 
+            font-size: 0.7rem; 
+            color: var(--text-dim); 
+            margin-top: 5px; 
         }
 
-        .metric-title {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .viz-grid { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: 1fr 1fr; }
         }
-
-        .metric-value {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-top: 5px;
-            font-family: monospace;
-        }
-
-        .formula-display {
-            margin-top: 10px;
-            text-align: center;
-            font-family: 'Times New Roman', serif;
-            font-style: italic;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            opacity: 0.8;
-        }
-
-        /* Legend */
-        .legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-            padding: 10px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="main-layout">
     <header>
-        <h1>Elastic Collision Simulator</h1>
-        <div class="subtitle">Interactive Laboratory & Center-of-Mass Frame Analysis</div>
+        <h1>Holographic Collision <span style="color:var(--neon-blue); font-size:0.6em; vertical-align:middle;">PRO</span></h1>
     </header>
 
-    <div class="main-grid">
-        <div class="panel">
-            <h3 style="margin-top:0; color:white; border-bottom:1px solid #ffffff22; padding-bottom:10px;">Parameters</h3>
-            
-            <div class="control-group">
-                <label for="mass1">Mass 1 (m₁) <span class="value-badge" id="mass1-value">3.0 kg</span></label>
-                <input type="range" id="mass1" min="1" max="15" step="0.5" value="3">
-            </div>
-            
-            <div class="control-group">
-                <label for="mass2">Mass 2 (m₂) <span class="value-badge" id="mass2-value">5.0 kg</span></label>
-                <input type="range" id="mass2" min="1" max="15" step="0.5" value="5">
-            </div>
-            
-            <div class="control-group">
-                <label for="velocity">Velocity (u₁) <span class="value-badge" id="velocity-value">5.0 m/s</span></label>
-                <input type="range" id="velocity" min="1" max="20" step="0.5" value="10">
-            </div>
-            
-            <div class="control-group">
-                <label for="scattering-angle">CM Scattering (θ) <span class="value-badge" id="angle-value">60°</span></label>
-                <input type="range" id="scattering-angle" min="0" max="180" value="60">
-            </div>
+    <aside class="control-panel">
+        <div class="input-group">
+            <div class="group-title" style="color:var(--neon-blue)">Particle 1 (Blue)</div>
+            <div class="row"><label>Mass (kg)</label><input type="number" id="m1" value="4"></div>
+            <div class="row"><label>Vel ($u_1$)</label><input type="number" id="u1" value="10"></div>
+        </div>
 
-            <button id="play-pause" class="btn-primary">Start Simulation</button>
+        <div class="input-group">
+            <div class="group-title" style="color:var(--neon-pink)">Particle 2 (Pink)</div>
+            <div class="row"><label>Mass (kg)</label><input type="number" id="m2" value="6"></div>
+            <div class="row"><label>Vel ($u_2$)</label><input type="number" id="u2" value="0"></div>
+        </div>
 
-            <div style="margin-top: 20px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-                <p><strong>Note:</strong> In the Lab Frame, m₂ is initially at rest.</p>
+        <div class="input-group">
+            <div class="group-title">Physics Engine</div>
+            <div class="row"><label>Restitution ($e$)</label><input type="number" id="e" value="0.9" step="0.1" max="1" min="0"></div>
+            <div class="row"><label>Angle ($\chi$)</label><input type="number" id="chi" value="60"></div>
+        </div>
+
+        <button class="btn-glow" id="btn-run">Initialize System</button>
+    </aside>
+
+    <main>
+        <div class="viz-grid">
+            <div class="viz-card">
+                <div class="card-label">LABORATORY FRAME</div>
+                <canvas id="cvs-lab"></canvas>
+            </div>
+            <div class="viz-card">
+                <div class="card-label">CENTER OF MASS FRAME</div>
+                <canvas id="cvs-cm"></canvas>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-            
-            <div class="canvas-container">
-                <div class="canvas-wrapper">
-                    <div class="frame-label">LABORATORY FRAME</div>
-                    <canvas id="lab-frame" width="450" height="350"></canvas>
-                    <div class="formula-display" id="lab-formula">Vcm = ...</div>
-                </div>
-                <div class="canvas-wrapper">
-                    <div class="frame-label">CENTER-OF-MASS FRAME</div>
-                    <canvas id="cm-frame" width="450" height="350"></canvas>
-                    <div class="formula-display">u₁' = -u₂' (Zero Momentum)</div>
-                </div>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-val" style="color:var(--neon-green)" id="out-vcm">--</div>
+                <div class="stat-label">System $V_{cm}$</div>
             </div>
-
-            <div class="panel">
-                <div class="legend">
-                    <div class="legend-item"><div class="dot" style="background:var(--accent-secondary); box-shadow: 0 0 5px var(--accent-secondary);"></div> Mass 1</div>
-                    <div class="legend-item"><div class="dot" style="background:var(--accent-primary); box-shadow: 0 0 5px var(--accent-primary);"></div> Mass 2</div>
-                    <div class="legend-item"><div class="dot" style="background:var(--accent-cm); box-shadow: 0 0 5px var(--accent-cm);"></div> Center of Mass</div>
-                </div>
-
-                <div class="dashboard">
-                    <div class="metric-card">
-                        <div class="metric-title">Lab Scattering θ₁</div>
-                        <div class="metric-value" id="val-theta1">--°</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-title">Lab Recoil θ₂</div>
-                        <div class="metric-value" id="val-theta2">--°</div>
-                    </div>
-                    <div class="metric-card" style="border: 1px solid rgba(74, 222, 128, 0.3);">
-                        <div class="metric-title" style="color: var(--accent-cm);">System Kinetic Energy</div>
-                        <div class="metric-value" style="color: var(--accent-cm);" id="val-energy">-- J</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-title">Final Speed v₁</div>
-                        <div class="metric-value" id="val-v1">--</div>
-                    </div>
-                </div>
+            <div class="stat-item">
+                <div class="stat-val" style="color:#f59e0b" id="out-loss">--</div>
+                <div class="stat-label">Energy Loss (Q)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-val" id="out-v1">--</div>
+                <div class="stat-label">Final Speed $v_1$</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-val" id="out-v2">--</div>
+                <div class="stat-label">Final Speed $v_2$</div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <script>
-    // --- Configuration & Constants ---
+    // --- Configuration ---
     const COLORS = {
-        m1: '#f472b6', // Pink
-        m2: '#38bdf8', // Blue
-        cm: '#4ade80', // Green
-        grid: 'rgba(255, 255, 255, 0.05)',
-        text: '#e2e8f0'
+        m1: '#3b82f6', // Soft Blue
+        m2: '#ec4899', // Soft Pink
+        bg: '#f8fafc',
+        grid: 'rgba(0,0,0,0.05)'
     };
 
-    // --- DOM Elements ---
-    const canvasLab = document.getElementById('lab-frame');
-    const ctxLab = canvasLab.getContext('2d');
-    const canvasCm = document.getElementById('cm-frame');
-    const ctxCm = canvasCm.getContext('2d');
+    const cvsLab = document.getElementById('cvs-lab');
+    const cvsCm = document.getElementById('cvs-cm');
+    const ctxLab = cvsLab.getContext('2d');
+    const ctxCm = cvsCm.getContext('2d');
 
-    const controls = {
-        m1: document.getElementById('mass1'),
-        m2: document.getElementById('mass2'),
-        u1: document.getElementById('velocity'),
-        theta: document.getElementById('scattering-angle'),
-        btn: document.getElementById('play-pause')
-    };
-
-    const displays = {
-        m1: document.getElementById('mass1-value'),
-        m2: document.getElementById('mass2-value'),
-        u1: document.getElementById('velocity-value'),
-        theta: document.getElementById('angle-value'),
-        labFormula: document.getElementById('lab-formula'),
-        valTheta1: document.getElementById('val-theta1'),
-        valTheta2: document.getElementById('val-theta2'),
-        valEnergy: document.getElementById('val-energy'),
-        valV1: document.getElementById('val-v1')
-    };
+    // Resize Canvas for Retina/HighDPI
+    function resizeCanvas(canvas) {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = 400;
+    }
+    window.addEventListener('resize', () => { resizeCanvas(cvsLab); resizeCanvas(cvsCm); });
+    resizeCanvas(cvsLab); resizeCanvas(cvsCm);
 
     // --- State ---
-    let state = {
-        isPlaying: false,
-        progress: 0,
-        animId: null
+    let state = { 
+        running: false, 
+        t: 0, 
+        animId: null,
+        trails: { cm: [], lab: [] } // History for drawing trails
     };
-
-    // --- Event Listeners ---
-    Object.values(controls).forEach(el => {
-        if(el.type === 'range') el.addEventListener('input', updateSimulation);
-    });
-    controls.btn.addEventListener('click', toggleAnimation);
+    let data = {};
+    let scaleFactor = 1;
 
     // --- Physics Core ---
-    function calculatePhysics() {
-        const m1 = parseFloat(controls.m1.value);
-        const m2 = parseFloat(controls.m2.value);
-        const u1 = parseFloat(controls.u1.value);
-        const thetaDeg = parseFloat(controls.theta.value);
-        const thetaRad = thetaDeg * Math.PI / 180;
+    function calculate() {
+        const m1 = parseFloat(document.getElementById('m1').value);
+        const m2 = parseFloat(document.getElementById('m2').value);
+        const u1 = parseFloat(document.getElementById('u1').value);
+        const u2 = parseFloat(document.getElementById('u2').value);
+        const e = parseFloat(document.getElementById('e').value);
+        const chi = parseFloat(document.getElementById('chi').value) * Math.PI / 180;
 
-        // 1. Center of Mass Velocity (Lab Frame)
-        const Vcm = (m1 * u1) / (m1 + m2);
+        // 1. Vcm Calculation
+        const Vcm = (m1*u1 + m2*u2)/(m1+m2);
 
-        // 2. Initial velocities in CM Frame
-        // u1' = u1 - Vcm = m2*u1 / (m1+m2)
-        const u1_prime = (m2 * u1) / (m1 + m2);
-        const u2_prime = - (m1 * u1) / (m1 + m2); // Negative direction
+        // 2. CM Frame Velocities (Initial)
+        const u1p = u1 - Vcm;
+        const u2p = u2 - Vcm;
 
-        // 3. Lab Frame Scattering Angles
-        // tan(theta1) = sin(theta) / (cos(theta) + m1/m2)
-        const tanTheta1 = Math.sin(thetaRad) / (Math.cos(thetaRad) + (m1/m2));
-        const theta1 = Math.atan(tanTheta1);
-        const theta2 = (Math.PI - thetaRad) / 2;
+        // 3. CM Frame Velocities (Final Magnitude)
+        const v1p_mag = e * Math.abs(u1p);
+        const v2p_mag = e * Math.abs(u2p);
 
-        // 4. Final Velocities (Lab Frame) via cosine rule or vector addition
-        // v1^2 = v1'^2 + Vcm^2 + 2*v1'*Vcm*cos(theta)
-        // elastic collision in CM: magnitude v1' = u1'
-        const v1_final = Math.sqrt(u1_prime**2 + Vcm**2 + 2*u1_prime*Vcm*Math.cos(thetaRad));
-        const v2_final = Math.sqrt(u2_prime**2 + Vcm**2 + 2*Math.abs(u2_prime)*Vcm*Math.cos(Math.PI - thetaRad)); // slightly complex due to vector direction, simplified below
+        // 4. Vectors (Scattering)
+        // u1p is along X axis. v1p is rotated by chi.
+        // Note: u1p can be negative, so we use sign to determine direction
+        const dir = Math.sign(u1p); 
+        
+        const v1p = { 
+            x: v1p_mag * Math.cos(chi) * dir, // Preserves direction logic
+            y: -v1p_mag * Math.sin(chi)       // Scatters Up
+        };
+        
+        const v2p = {
+            x: v2p_mag * Math.cos(Math.PI + chi) * dir, // Opposite
+            y: -v2p_mag * Math.sin(Math.PI + chi)
+        };
 
-        // Energy Check (Initial Kinetic Energy)
-        const KE = 0.5 * m1 * u1 * u1;
+        // 5. Lab Vectors
+        const v1L = { x: v1p.x + Vcm, y: v1p.y };
+        const v2L = { x: v2p.x + Vcm, y: v2p.y };
 
-        return {
-            m1, m2, u1, thetaRad, Vcm, u1_prime, u2_prime, theta1, theta2, KE, v1_final
+        // 6. Auto Scale
+        const maxVel = Math.max(Math.abs(u1), Math.abs(u2), Math.hypot(v1L.x, v1L.y));
+        scaleFactor = 150 / (maxVel * 1.2 + 1); // Pixels per meter (approx)
+
+        return { 
+            m1, m2, u1, u2, Vcm, u1p, u2p, v1p, v2p, v1L, v2L,
+            KE_loss: 0.5*m1*u1**2 + 0.5*m2*u2**2 - (0.5*m1*(v1L.x**2+v1L.y**2) + 0.5*m2*(v2L.x**2+v2L.y**2))
         };
     }
 
-    // --- Animation Logic ---
-    function toggleAnimation() {
-        state.isPlaying = !state.isPlaying;
-        controls.btn.textContent = state.isPlaying ? 'Pause Simulation' : 'Start Simulation';
-        controls.btn.style.background = state.isPlaying 
-            ? 'linear-gradient(135deg, #ef4444, #b91c1c)' // Red for Stop
-            : 'linear-gradient(135deg, var(--accent-primary), #0ea5e9)'; // Blue for Start
-        
-        if (state.isPlaying) {
-            if (state.progress >= 1) state.progress = 0; // Auto reset if finished
-            loop();
-        } else {
+    // --- Animation ---
+    document.getElementById('btn-run').addEventListener('click', () => {
+        if(state.running) {
+            state.running = false;
             cancelAnimationFrame(state.animId);
+            document.getElementById('btn-run').textContent = "INITIALIZE SYSTEM";
+            document.getElementById('btn-run').style.background = "linear-gradient(90deg, var(--neon-blue), #8b5cf6)";
+        } else {
+            data = calculate();
+            state.t = 0;
+            state.trails = { cm: [], lab: [] }; // Reset trails
+            state.running = true;
+            document.getElementById('btn-run').textContent = "ABORT SIMULATION";
+            document.getElementById('btn-run').style.background = "linear-gradient(90deg, #ef4444, #b91c1c)";
+            
+            // Update Stats
+            document.getElementById('out-vcm').textContent = data.Vcm.toFixed(2);
+            document.getElementById('out-loss').textContent = data.KE_loss.toFixed(2) + " J";
+            document.getElementById('out-v1').textContent = Math.hypot(data.v1L.x, data.v1L.y).toFixed(2);
+            document.getElementById('out-v2').textContent = Math.hypot(data.v2L.x, data.v2L.y).toFixed(2);
+
+            loop();
         }
-    }
+    });
 
     function loop() {
-        if (!state.isPlaying) return;
-
-        state.progress += 0.005; // Speed
-        if (state.progress >= 1) {
-            state.progress = 1;
-            state.isPlaying = false;
-            controls.btn.textContent = "Restart Simulation";
-            controls.btn.style.background = 'linear-gradient(135deg, #10b981, #059669)'; // Green for restart
+        if(!state.running) return;
+        state.t += 0.005; // Speed
+        if(state.t > 1) {
+            state.running = false;
+            document.getElementById('btn-run').textContent = "RE-INITIALIZE";
+            document.getElementById('btn-run').style.background = "linear-gradient(90deg, #10b981, #059669)";
+            draw(1);
+            return;
         }
-
-        draw();
-        if (state.isPlaying) {
-            state.animId = requestAnimationFrame(loop);
-        }
+        draw(state.t);
+        state.animId = requestAnimationFrame(loop);
     }
 
-    // Easing function for smoother motion
-    function easeInOutQuad(t) {
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-    }
+    // --- Rendering ---
+    function draw(t) {
+        const w = cvsLab.width; const h = cvsLab.height;
+        const cx = w/2; const cy = h/2;
 
-    // --- Drawing System ---
-    function updateSimulation() {
-        // Update Labels
-        displays.m1.textContent = controls.m1.value + ' kg';
-        displays.m2.textContent = controls.m2.value + ' kg';
-        displays.u1.textContent = controls.u1.value + ' m/s';
-        displays.theta.textContent = controls.theta.value + '°';
-
-        const phys = calculatePhysics();
+        // Clear
+        ctxLab.clearRect(0,0,w,h); ctxCm.clearRect(0,0,w,h);
         
-        displays.labFormula.innerHTML = `V<sub>cm</sub> = ${phys.Vcm.toFixed(2)} m/s`;
-        displays.valTheta1.textContent = (phys.theta1 * 180/Math.PI).toFixed(1) + '°';
-        displays.valTheta2.textContent = (phys.theta2 * 180/Math.PI).toFixed(1) + '°';
-        displays.valEnergy.textContent = phys.KE.toFixed(1) + ' J';
-        displays.valV1.textContent = phys.v1_final.toFixed(2) + ' m/s';
+        // Draw Holographic Grid
+        drawGrid(ctxLab, w, h); drawGrid(ctxCm, w, h);
 
-        if (!state.isPlaying) draw();
-    }
-
-    function draw() {
-        const phys = calculatePhysics();
-        const w = canvasLab.width;
-        const h = canvasLab.height;
+        // Calculate Positions based on time t
+        // t=0.5 is collision
+        const split = 0.5;
+        let posL = {}, posC = {};
         
-        // 1. Draw Lab Frame
-        drawScene(ctxLab, w, h, phys, 'lab');
-        
-        // 2. Draw CM Frame
-        drawScene(ctxCm, w, h, phys, 'cm');
-    }
+        // Sim Time (duration logic)
+        // We map t (0->1) to simulation time (-1s to +1s approx)
+        const simT = (t - split) * 2.0; 
 
-    function drawScene(ctx, width, height, phys, type) {
-        // Clear & Background
-        ctx.clearRect(0, 0, width, height);
-        drawGrid(ctx, width, height);
-
-        const cy = height / 2;
-        const cx = width / 2;
+        // Logic:
+        // Before collision: Pos = Vel_initial * time (where time is negative)
+        // After collision: Pos = Vel_final * time (where time is positive)
         
-        // Normalize progress for phases
-        // Phase 1: Approach (0 -> 0.45)
-        // Phase 2: Collision (0.45 -> 0.55)
-        // Phase 3: Separation (0.55 -> 1.0)
-        
-        let p = state.progress;
-        let m1Pos = {x:0, y:0}, m2Pos = {x:0, y:0};
-        let alphaInfo = 1; // For text fade
-
-        // --- LAB FRAME LOGIC ---
-        if (type === 'lab') {
-            const Vcm_px = phys.Vcm * 10; // scale factor
+        if(t <= split) {
+            // Approach
+            posC.m1 = { x: data.u1p * simT, y: 0 };
+            posC.m2 = { x: data.u2p * simT, y: 0 };
             
-            // Draw CM Marker (moves in Lab Frame)
-            const cmStartX = 100;
-            const cmTravel = (width - 200);
-            const cmX = cmStartX + cmTravel * p; // CM moves constantly
-            
-            drawCMReticule(ctx, cmX, cy);
+            // Lab: Camera centered on impact point
+            posL.m1 = { x: data.u1 * simT, y: 0 };
+            posL.m2 = { x: data.u2 * simT, y: 0 };
+        } else {
+            // Scatter
+            posC.m1 = { x: data.v1p.x * simT, y: data.v1p.y * simT };
+            posC.m2 = { x: data.v2p.x * simT, y: data.v2p.y * simT };
 
-            if (p < 0.5) {
-                // Approach
-                const time = p / 0.5; // 0 to 1
-                // m2 is stationary initially relative to ground? No, wait.
-                // In Lab frame, m2 is at rest initially.
-                // But we want the collision to happen at the specific CM point at t=0.5.
-                
-                // Let's simplify visual logic: Collision happens at screen center for visuals?
-                // No, Lab frame collision happens where m2 is.
-                // Let's fix collision point at width/2 for simplicity in viewing
-                
-                const collisionX = width / 2;
-                
-                // m2 is at collisionX waiting
-                m2Pos = { x: collisionX, y: cy };
-                
-                // m1 comes from left. dist = v * t
-                // We animate backwards from collision point
-                const dist = 180; 
-                m1Pos = { x: collisionX - dist * (1-time), y: cy };
-                
-                drawVector(ctx, m1Pos.x, m1Pos.y, phys.u1 * 5, 0, COLORS.m1);
-                
-                ctx.fillStyle = COLORS.text;
-                ctx.font = "12px monospace";
-                ctx.fillText("Before Collision", 20, 40);
-
-            } else {
-                // Separation
-                const time = (p - 0.5) / 0.5; // 0 to 1
-                const collisionX = width / 2;
-                
-                // m1 moves at angle theta1
-                // Speed scaling is purely visual but proportional
-                const speedScale = 180;
-                
-                // Calculate Lab Final Velocities components for visual
-                // v1 = vector sum of v1' + Vcm
-                // Simplified visual ray casting based on angles
-                const dist1 = speedScale * time * (phys.v1_final / phys.u1); // relative speed
-                m1Pos = {
-                    x: collisionX + dist1 * Math.cos(phys.theta1),
-                    y: cy - dist1 * Math.sin(phys.theta1)
-                };
-
-                // m2
-                // Conservation of momentum: m1v1y + m2v2y = 0 -> m2 moves down
-                const dist2 = speedScale * time * 0.8; // approximation for visual
-                m2Pos = {
-                    x: collisionX + dist2 * Math.cos(phys.theta2),
-                    y: cy + dist2 * Math.sin(phys.theta2)
-                };
-
-                drawVector(ctx, m1Pos.x, m1Pos.y, 30, -phys.theta1, COLORS.m1);
-                drawVector(ctx, m2Pos.x, m2Pos.y, 30, phys.theta2, COLORS.m2);
-
-                ctx.fillStyle = COLORS.text;
-                ctx.fillText("After Collision", 20, 40);
-            }
-
-        } 
-        // --- CM FRAME LOGIC ---
-        else {
-            drawCMReticule(ctx, cx, cy); // CM is fixed at center
-
-            if (p < 0.5) {
-                const time = p / 0.5; // 0 to 1
-                const dist = 150 * (1 - time);
-                
-                m1Pos = { x: cx - dist, y: cy }; // Comes from left
-                m2Pos = { x: cx + dist, y: cy }; // Comes from right
-
-                drawVector(ctx, m1Pos.x, m1Pos.y, phys.u1_prime * 4, 0, COLORS.m1);
-                drawVector(ctx, m2Pos.x, m2Pos.y, phys.u2_prime * 4, Math.PI, COLORS.m2); // Point left
-                
-                ctx.fillStyle = COLORS.text;
-                ctx.fillText("Approach (Net Momentum = 0)", 20, 40);
-            } else {
-                const time = (p - 0.5) / 0.5;
-                const dist = 150 * time;
-                
-                // Scatter at angle theta
-                m1Pos = {
-                    x: cx + dist * Math.cos(phys.thetaRad),
-                    y: cy - dist * Math.sin(phys.thetaRad)
-                };
-                
-                m2Pos = {
-                    x: cx - dist * Math.cos(phys.thetaRad),
-                    y: cy + dist * Math.sin(phys.thetaRad)
-                };
-
-                // Draw scattering arc
-                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                ctx.beginPath();
-                ctx.arc(cx, cy, 40, 0, -phys.thetaRad, true);
-                ctx.stroke();
-                ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                ctx.fillText("θ", cx + 45, cy - 10);
-
-                drawVector(ctx, m1Pos.x, m1Pos.y, 40, -phys.thetaRad, COLORS.m1);
-                drawVector(ctx, m2Pos.x, m2Pos.y, 40, Math.PI - phys.thetaRad, COLORS.m2);
-                
-                ctx.fillStyle = COLORS.text;
-                ctx.fillText("Scattering", 20, 40);
-            }
+            posL.m1 = { x: data.v1L.x * simT, y: data.v1L.y * simT };
+            posL.m2 = { x: data.v2L.x * simT, y: data.v2L.y * simT };
         }
 
-        // Draw Particles
-        drawBall(ctx, m1Pos.x, m1Pos.y, 8 + phys.m1, COLORS.m1);
-        drawBall(ctx, m2Pos.x, m2Pos.y, 8 + phys.m2, COLORS.m2);
+        // Convert to Canvas Coords (Center + Scale)
+        const toCvs = (p) => ({ x: cx + p.x * scaleFactor, y: cy + p.y * scaleFactor });
+        
+        const pL1 = toCvs(posL.m1); const pL2 = toCvs(posL.m2);
+        const pC1 = toCvs(posC.m1); const pC2 = toCvs(posC.m2);
 
-        // Collision Flash
-        if (p > 0.48 && p < 0.52) {
-            ctx.fillStyle = `rgba(255, 255, 255, ${1 - Math.abs(0.5-p)*50})`;
-            ctx.globalCompositeOperation = 'screen';
-            ctx.fillRect(0, 0, width, height);
-            ctx.globalCompositeOperation = 'source-over';
+        // Store Trails (Only every 3rd frame to save perf)
+        if(Math.floor(t*1000)%3 === 0) {
+            state.trails.lab.push({m1:pL1, m2:pL2});
+            state.trails.cm.push({m1:pC1, m2:pC2});
         }
+
+        // Draw Trails (The Graph Fix)
+        drawTrail(ctxLab, state.trails.lab, COLORS.m1, 'm1');
+        drawTrail(ctxLab, state.trails.lab, COLORS.m2, 'm2');
+        drawTrail(ctxCm, state.trails.cm, COLORS.m1, 'm1');
+        drawTrail(ctxCm, state.trails.cm, COLORS.m2, 'm2');
+
+        // Draw Balls
+        drawNeonBall(ctxLab, pL1.x, pL1.y, data.m1, COLORS.m1, "M1");
+        drawNeonBall(ctxLab, pL2.x, pL2.y, data.m2, COLORS.m2, "M2");
+
+        drawNeonBall(ctxCm, pC1.x, pC1.y, data.m1, COLORS.m1, "M1");
+        drawNeonBall(ctxCm, pC2.x, pC2.y, data.m2, COLORS.m2, "M2");
+
+        // Draw HUD Details (Moving with ball)
+        // Calculate current velocities for display
+        const v1_curr = t<=0.5 ? data.u1 : Math.hypot(data.v1L.x, data.v1L.y);
+        const v2_curr = t<=0.5 ? data.u2 : Math.hypot(data.v2L.x, data.v2L.y);
+        
+        drawInfoHUD(ctxLab, pL1.x, pL1.y, `v:${v1_curr.toFixed(1)}`, COLORS.m1, -30);
+        drawInfoHUD(ctxLab, pL2.x, pL2.y, `v:${v2_curr.toFixed(1)}`, COLORS.m2, 30);
+
+        // CM Crosshair
+        drawCrosshair(ctxCm, cx, cy);
     }
 
-    // --- Helper Drawing Functions ---
-
+    // --- Graphics Helpers ---
+    
     function drawGrid(ctx, w, h) {
-        ctx.strokeStyle = COLORS.grid;
+        ctx.strokeStyle = 'rgba(0,0,0,0.05)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        for (let x = 0; x < w; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
-        for (let y = 0; y < h; y += 40) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+        for(let x=0; x<w; x+=40) { ctx.moveTo(x,0); ctx.lineTo(x,h); }
+        for(let y=0; y<h; y+=40) { ctx.moveTo(0,y); ctx.lineTo(w,y); }
         ctx.stroke();
     }
 
-    function drawCMReticule(ctx, x, y) {
-        ctx.strokeStyle = COLORS.cm;
+    function drawCrosshair(ctx, x, y) {
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
         ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
+        ctx.setLineDash([5, 5]);
         ctx.beginPath();
         ctx.moveTo(x, 0); ctx.lineTo(x, ctx.canvas.height);
+        ctx.moveTo(0, y); ctx.lineTo(ctx.canvas.width, y);
         ctx.stroke();
         ctx.setLineDash([]);
-        
-        ctx.fillStyle = COLORS.cm;
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI*2);
-        ctx.fill();
-        ctx.font = "10px sans-serif";
-        ctx.fillText("CM", x+6, y-6);
     }
 
-    function drawBall(ctx, x, y, r, color) {
-        // Glow effect
+    function drawTrail(ctx, history, color, key) {
+        if(history.length < 2) return;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.4; // Trail fade
+        ctx.beginPath();
+        ctx.moveTo(history[0][key].x, history[0][key].y);
+        for(let i=1; i<history.length; i++) {
+            ctx.lineTo(history[i][key].x, history[i][key].y);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+    }
+
+    function drawNeonBall(ctx, x, y, m, color, label) {
+        const r = 10 + 4 * Math.cbrt(m); // Cube root sizing
+        
+        // 1. Outer Glow
         ctx.shadowBlur = 15;
         ctx.shadowColor = color;
         
-        ctx.fillStyle = color;
+        // 2. Gradient Fill (Glass effect)
+        const grad = ctx.createRadialGradient(x-r/3, y-r/3, r/5, x, y, r);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.4, color);
+        grad.addColorStop(1, '#e2e8f0'); // Light edge for 3D
+        
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.arc(x, y, r, 0, Math.PI*2);
         ctx.fill();
         
-        // Highlight
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.beginPath();
-        ctx.arc(x - r*0.3, y - r*0.3, r*0.4, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.shadowBlur = 0; // Reset
+        ctx.shadowBlur = 0; // Reset shadow for text
+        
+        // 3. Center Label
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 9px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(label, x, y);
     }
 
-    function drawVector(ctx, x, y, len, angle, color) {
-        const toX = x + len * Math.cos(angle);
-        const toY = y + len * Math.sin(angle);
+    function drawInfoHUD(ctx, x, y, text, color, offsetY) {
+        ctx.font = "10px monospace";
+        const width = ctx.measureText(text).width + 8;
+        const h = 14;
         
+        // Background Box
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(toX, toY);
-        ctx.stroke();
-        
-        // Arrowhead
-        const headLen = 6;
-        ctx.beginPath();
-        ctx.moveTo(toX, toY);
-        ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI/6), toY - headLen * Math.sin(angle - Math.PI/6));
-        ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI/6), toY - headLen * Math.sin(angle + Math.PI/6));
-        ctx.fillStyle = color;
+        ctx.roundRect(x - width/2, y + offsetY - h/2, width, h, 4);
         ctx.fill();
+        ctx.stroke();
+
+        // Text
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, x, y + offsetY);
+        
+        // Connecting Line
+        ctx.beginPath();
+        ctx.moveTo(x, y + (offsetY > 0 ? 15 : -15));
+        ctx.lineTo(x, y + (offsetY > 0 ? offsetY - h/2 : offsetY + h/2));
+        ctx.stroke();
     }
 
-    // Initial Render
-    updateSimulation();
-
+    // Init
+    calculate();
 </script>
 </body>
 </html>
